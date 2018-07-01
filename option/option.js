@@ -7,6 +7,7 @@ let mainNode = document.querySelector("#main");
 let navNode = document.querySelector("#nav");
 let formNode = document.querySelector("#form");
 let presetNode = document.querySelector("#preset");
+let rankingNode = document.querySelector("#ranking");
 let othersNode = document.querySelector("#others");
 let historyNode = document.querySelector("#history");
 let contactNode = document.querySelector("#contact");
@@ -32,6 +33,7 @@ function initI18n(){
 		{ "selector": ".showForm", "property": "innerText", "key": "htmlFormName" },
 		{ "selector": ".showPreset", "property": "innerText", "key": "htmlPresetName" },
 		{ "selector": ".showHistory", "property": "innerText", "key": "htmlHistoryName" },
+		{ "selector": ".showRanking", "property": "innerText", "key": "htmlRankingName" },
 		{ "selector": ".showOthers", "property": "innerText", "key": "htmlOthersName" },
 		{ "selector": ".showContact", "property": "innerText", "key": "htmlContactName" },
 		{ "selector": "input.label", "property": "title", "key": "htmlLabelDescription" },
@@ -72,20 +74,20 @@ function initListener(){
 	window.addEventListener("click", hideInputMessage);
 }
 
-function fileChangeBehavior(e){
+function fileChangeBehavior(e, area){
 	if( !e.hasOwnProperty("w")) return;
 	if( e["w"]["newValue"] == windowId ) return;
-	if( e.hasOwnProperty("ol") ){
-		removeAllField();
-		let optionList = e["ol"]["newValue"];
-		for( let i=0; i<optionList.length; i++){
-			let item = optionList[i];
-			if( !item.hasOwnProperty("h") ) item["h"] = false;
-			addField(item["c"], item["h"], item["l"], item["u"]);
-		}
-		resetSort();
+	if( !e.hasOwnProperty("ol") ) return;
+	removeAllField();
+	let optionList = e["ol"]["newValue"];
+	for( let i=0; i<optionList.length; i++){
+		let item = optionList[i];
+		if( !item.hasOwnProperty("h") ) item["h"] = false;
+		addField(item["c"], item["h"], item["l"], item["u"]);
 	}
+	resetSort();
 }
+
 
 function navBehavior(e){
 	let classList = e.target.classList;
@@ -100,6 +102,9 @@ function navBehavior(e){
 	}
 	else if(classList.contains("showHistory")){
 		showHistory();
+	}
+	else if(classList.contains("showRanking")){
+		showRanking();
 	}
 	else if(classList.contains("showOthers")){
 		showOthers();
@@ -155,6 +160,13 @@ function showHistory(){
 	addActive("showHistory");
 	hideAllPanels();
 	show(historyNode);
+}
+
+function showRanking(){
+	removeActive();
+	addActive("showRanking");
+	hideAllPanels();
+	show(rankingNode);
 }
 
 function showOthers(){
@@ -437,5 +449,5 @@ function fetchValue(element, selector){
 
 function saveOption(){
 	let data = { "ol": makeOptionList() };
-	return save(data).catch(onSaveError);
+	return saveW(data).catch(onSaveError);
 }

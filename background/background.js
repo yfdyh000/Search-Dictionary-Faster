@@ -9,7 +9,7 @@ function install(e){
 		let data = {
 			"ol": getDefaultOptionList()
 		};
-		return save(data).catch(onSaveError);
+		return save(data).then(initContextMenu).catch(onSaveError);
 	}
 }
 
@@ -27,6 +27,9 @@ function initListener(){
 	ponyfill.storage.onChanged.addListener( onStorageChanged );
 	ponyfill.contextMenus.onClicked.addListener( contextMenuBehavior );
 	ponyfill.runtime.onMessage.addListener(notify);
+	ponyfill.browserAction.onClicked.addListener((e)=>{
+		ponyfill.runtime.openOptionsPage();
+	});
 }
 
 function openWindow( url, text){
@@ -42,6 +45,9 @@ function notify(message, sender, sendResponse){
 	}
 	else if( method == "saveHistory" ){
 		sendResponse( saveHistory(data) );
+	}
+	else if( method == "openOptions" ){
+		sendResponse( ponyfill.runtime.openOptionsPage() );
 	}
 	else {
 		sendResponse( save(data) );
@@ -80,12 +86,14 @@ function addHistory(e){
 function saveHistory(data){
 	data.date = new Date();
 	let obj = {"data": data};
-	return Promise.resolve().then(indexeddb.open).then(indexeddb.prepareRequest).then(addHistory.bind(obj));
+	return Promise.resolve()
+		.then(indexeddb.open.bind(indexeddb))
+		.then(indexeddb.prepareRequest.bind(indexeddb))
+		.then(addHistory.bind(obj));
 }
 
 function onStorageChanged(change, area){
 	if(change["ol"] || change["bf"] || change["sk"] || change["ck"]) {
-		ponyfill.contextMenus.removeAll();
 		let getter = ponyfill.storage.sync.get({
 			"ol": [],
 			"bf": true,
@@ -97,6 +105,7 @@ function onStorageChanged(change, area){
 }
 
 function resetMenu(json){
+	ponyfill.contextMenus.removeAll();
 	let optionList = json["ol"];
 	let autoViewFlag = json["bf"];
 	let shiftKey = json["sk"];
